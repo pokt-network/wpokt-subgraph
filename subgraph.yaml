@@ -1,0 +1,25 @@
+specVersion: 0.0.2
+description: Example Subgraph
+repository: https://github.com/graphprotocol/example-subgraph
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Example
+    network: mainnet
+    source:
+      address: '0x0000000000000000000000000000000000000000'
+      abi: ExampleAbi
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Example
+      abis:
+        - name: ExampleAbi
+          file: ./abis/ExampleAbi.json
+      eventHandlers:
+        - event: NewExample(uint256,address,string,string)
+          handler: handleNewExample
+      file: ./src/mapping.ts
