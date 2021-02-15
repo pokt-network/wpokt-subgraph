@@ -3,7 +3,8 @@ import {
   Unstaked,
   TokensClaimed,
   TokensLocked,
-  TokensUnlocked
+  TokensUnlocked,
+  TokenGeyser as TokenGeyserContract,
 } from '../types/TokenGeyser/TokenGeyser';
 import {
   TokenGeyser,
@@ -16,6 +17,8 @@ import {
   ZERO_BIG_DECIMAL,
   ONE_BIG_INT,
 } from '../util/constants';
+import { log } from '@graphprotocol/graph-ts';
+import { createNewToken } from '../util/helper';
 
 export function handleStaked(event: Staked): void {
   // Load the TokenGeyser instance from db.
@@ -62,6 +65,50 @@ export function handleUnstaked(event: Unstaked): void {}
 
 export function handleTokensClaimed(event: TokensClaimed): void {}
 
-export function handleTokensLocked(event: TokensLocked): void {}
+export function handleTokensLocked(event: TokensLocked): void {
+  let geyserContract = TokenGeyserContract.bind(event.address);
+
+  let stakingToken = Token.load(geyserContract.getStakingToken().toHexString());
+  if (stakingToken == null) {
+    stakingToken = createNewToken(geyserContract.getStakingToken());
+    stakingToken.save();
+  }
+
+  log.debug('Saved the Staking Token.', []);
+
+  let rewardToken = Token.load(geyserContract.getDistributionToken().toHexString());
+  if (rewardToken == null) {
+    rewardToken = createNewToken(geyserContract.getDistributionToken());
+    rewardToken.save();
+  }
+ 
+  log.debug('Saved the Reward Token.', []);
+
+  let geyser = TokenGeyser.load(event.address.toHexString());
+  if (geyser == null) {
+    geyser = new TokenGeyser(event.address.toHexString());
+  }
+
+  // geyser entity
+  geyser.stakingToken = stakingToken.id;
+  geyser.rewardToken = rewardToken.id;
+  geyser.startBonus = geyserContract.startBonus();
+  geyser.bonusPeriodSec = geyserContract.bonusPeriodSec();
+  geyser.createdBlock = event.block.number;
+  geyser.createdTimestamp = event.block.timestamp;
+
+  geyser.users = ZERO_BIG_INT;
+  geyser.operations = ZERO_BIG_INT;
+  geyser.staked = ZERO_BIG_DECIMAL;
+  geyser.rewards = ZERO_BIG_DECIMAL;
+
+  geyser.tvl = ZERO_BIG_DECIMAL;
+  geyser.apy = ZERO_BIG_DECIMAL;
+  geyser.sharesPerToken = ZERO_BIG_DECIMAL;
+  geyser.updated = ZERO_BIG_INT;
+
+  geyser.save();
+  log.debug('Saved Geyser.', []);
+}
 
 export function handleTokensUnlocked(event: TokensUnlocked): void {}
