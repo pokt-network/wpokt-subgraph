@@ -1,25 +1,36 @@
 specVersion: 0.0.2
-description: Example Subgraph
-repository: https://github.com/graphprotocol/example-subgraph
+description: wPOKT Farming Subgraph
+repository: https://github.com/pokt-network/wpokt-subgraph
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: Example
-    network: mainnet
+    name: TokenGeyser
+    network: rinkeby
     source:
-      address: '0x0000000000000000000000000000000000000000'
-      abi: ExampleAbi
+      address: '0xdb7d0a3bfcb7b34e6be510b26c55c8b60bd66d4a'
+      abi: TokenGeyser
+      startBlock: 8078761
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
       language: wasm/assemblyscript
       entities:
-        - Example
+        - TokenGeyser
       abis:
-        - name: ExampleAbi
-          file: ./abis/ExampleAbi.json
+        - name: TokenGeyser
+          file: ./abis/TokenGeyser.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
-        - event: NewExample(uint256,address,string,string)
-          handler: handleNewExample
-      file: ./src/mapping.ts
+        - event: Staked(indexed address,uint256,uint256,bytes)
+          handler: handleStaked
+        - event: Unstaked(indexed address,uint256,uint256,bytes)
+          handler: handleUnstaked
+        - event: TokensClaimed(indexed address,uint256)
+          handler: handleTokensClaimed
+        - event: TokensLocked(uint256,uint256,uint256)
+          handler: handleTokensLocked
+        - event: TokensUnlocked(uint256,uint256)
+          handler: handleTokensUnlocked
+      file: ./src/mappings/tokenGeyser.ts

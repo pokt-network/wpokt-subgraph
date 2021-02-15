@@ -32,6 +32,10 @@ Full Description
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
+wPOKT on Rinkeby - `0x2f363dd061cc8b3411c3c91c0cfac0fa1b62f656`
+TokenGeyser on Rinkeby - `0xdb7d0a3bfcb7b34e6be510b26c55c8b60bd66d4a`
+wPOKT Pool - `0x7c2cf434e98940ad08ae3f26986235628b0904e7`
+
 ### Example usage
 
 ```
