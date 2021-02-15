@@ -1,3 +1,60 @@
-type Example @entity {
+enum TokenType {
+  Standard
+  Stable
+}
+
+type Token @entity {
   id: ID!
+
+  symbol: String!
+  name: String!
+  decimals: BigInt!
+  totalSupply: BigInt!
+
+  type: TokenType!
+
+  price: BigDecimal!
+  updated: BigInt!
+}
+
+type TokenGeyser @entity {
+  id: ID!
+
+  stakingToken: Token!
+  rewardToken: Token!
+
+  startBonus: BigInt!
+  bonusPeriodSec: BigInt!
+
+  users: BigInt!
+  operations: BigInt!
+
+  staked: BigDecimal!
+  rewards: BigDecimal!
+
+  tvl: BigDecimal!
+  apy: BigDecimal!
+  sharesPerToken: BigDecimal!
+  updated: BigInt!
+
+  createdTimestamp: BigInt!
+  createdBlock: BigInt!
+}
+
+type User @entity {
+  id: ID!
+
+  operations: BigInt!
+  earned: BigDecimal!
+  
+  stakes: [Stake!] @derivedFrom(field: "user")
+}
+
+type Stake @entity {
+  id: ID!
+
+  amount: BigInt!
+  user: User!
+
+  timestamp: BigInt!
 }
