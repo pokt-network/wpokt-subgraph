@@ -1,0 +1,17 @@
+{
+  "name": "wpokt-subgraph",
+  "version": "0.1.0",
+  "description": "<div align=\"center\">   <a href=\"https://www.pokt.network\">     <img src=\"https://user-images.githubusercontent.com/16605170/74199287-94f17680-4c18-11ea-9de2-b094fab91431.png\" alt=\"Pocket Network logo\" width=\"340\"/>   </a> </div>",
+  "repository": "https://github.com/pokt-network/wpokt-subgraph",
+  "license": "MIT",
+  "scripts": {
+    "auth": "graph auth https://api.thegraph.com/ $GRAPH_ACCESS_TOKEN",
+    "codegen": "graph codegen --output-dir src/types/",
+    "build": "graph build",
+    "deploy": "yarn codegen && yarn build && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ pokt-network/wpokt-subgraph"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.18.0",
+    "@graphprotocol/graph-ts": "0.18.0"
+  }
+}
