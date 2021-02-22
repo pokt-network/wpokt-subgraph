@@ -44,13 +44,14 @@ export function handleStaked(event: Staked): void {
   let stake = new Stake(stakeId);
   stake.amount = event.params.amount;
   stake.user = user.id;
-
-  // Update stats information
   stake.timestamp = event.block.timestamp;
 
+  // Add the created stake to the user
+  user.stakes = user.stakes.concat([stake.id]);
+
+  // Update stats information
   user.operations = user.operations.plus(ONE_BIG_INT);
   geyser.operations = geyser.operations.plus(ONE_BIG_INT);
-
   geyser.updated = event.block.timestamp;
 
   // Save entities in the dabase.
@@ -61,7 +62,42 @@ export function handleStaked(event: Staked): void {
   geyser.save();
 }
 
-export function handleUnstaked(event: Unstaked): void {}
+export function handleUnstaked(event: Unstaked): void {
+  // Load the TokenGeyser instance.
+  let geyser = TokenGeyser.load(event.address.toHexString())!;
+
+  // Load existing user.
+  let user = User.load(event.params.user.toHexString())!;
+
+  // Load stakes from user.
+  let stakes = user.stakes!;
+
+  let deducted: boolean = false;
+  
+  /*
+   * Iterate stakes from the first one, and deduct the unstaked amount.
+   * The contract always unstakes from the oldest stake position.
+  */
+  for (let _i = 0; _i < stakes.length; _i++) {
+    if (deducted === true) break;
+    let stakeId = stakes[_i]!;
+    let stake = Stake.load(stakeId)!;
+    if (stake.amount >= event.params.amount) {
+      stake.amount = stake.amount.minus(event.params.amount);
+      stake.save();
+      deducted = true;
+    }
+  }
+
+  // Update stats
+  user.operations = user.operations.plus(BigInt.fromI32(1));
+  geyser.operations = geyser.operations.plus(BigInt.fromI32(1));
+
+  geyser.updated = event.block.timestamp;
+
+  user.save();
+  geyser.save();
+}
 
 export function handleTokensClaimed(event: TokensClaimed): void {}
 
@@ -89,7 +125,7 @@ export function handleTokensLocked(event: TokensLocked): void {
     geyser = new TokenGeyser(event.address.toHexString());
   }
 
-  // geyser entity
+  // Assign default values to the TokenGeyser entity.
   geyser.stakingToken = stakingToken.id;
   geyser.rewardToken = rewardToken.id;
   geyser.startBonus = geyserContract.startBonus();
