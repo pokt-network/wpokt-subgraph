@@ -90,8 +90,8 @@ export function handleUnstaked(event: Unstaked): void {
   }
 
   // Update stats
-  user.operations = user.operations.plus(BigInt.fromI32(1));
-  geyser.operations = geyser.operations.plus(BigInt.fromI32(1));
+  user.operations = user.operations.plus(ONE_BIG_INT);
+  geyser.operations = geyser.operations.plus(ONE_BIG_INT);
 
   geyser.updated = event.block.timestamp;
 

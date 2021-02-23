@@ -47,7 +47,7 @@ type User @entity {
   operations: BigInt!
   earned: BigDecimal!
   
-  stakes: [Stake!] @derivedFrom(field: "user")
+  stakes: [Stake!]
 }
 
 type Stake @entity {
