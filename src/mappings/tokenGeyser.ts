@@ -18,7 +18,7 @@ import {
   ONE_BIG_INT,
 } from '../util/constants';
 import { log } from '@graphprotocol/graph-ts';
-import { createNewToken } from '../util/helper';
+import { createNewToken, integerToDecimal } from '../util/helper';
 
 export function handleStaked(event: Staked): void {
   // Load the TokenGeyser instance from db.
@@ -74,10 +74,10 @@ export function handleUnstaked(event: Unstaked): void {
 
   let deducted: boolean = false;
   
-  /*
+  /**
    * Iterate stakes from the first one, and deduct the unstaked amount.
    * The contract always unstakes from the oldest stake position.
-  */
+   */
   for (let _i = 0; _i < stakes.length; _i++) {
     if (deducted === true) break;
     let stakeId = stakes[_i]!;
@@ -99,7 +99,22 @@ export function handleUnstaked(event: Unstaked): void {
   geyser.save();
 }
 
-export function handleTokensClaimed(event: TokensClaimed): void {}
+export function handleTokensClaimed(event: TokensClaimed): void {
+  // Load token geyser.
+  let geyser = TokenGeyser.load(event.address.toHexString())!;
+  
+  // Load or create user.
+  let user = User.load(event.params.user.toHexString())!;
+
+  // Add claimed rewards to user eaned amount.
+  user.earned = user.earned.plus(integerToDecimal(event.params.amount));
+
+  // Update stats.
+  geyser.updated = event.block.timestamp;
+  
+  user.save();
+  geyser.save();
+}
 
 export function handleTokensLocked(event: TokensLocked): void {
   let geyserContract = TokenGeyserContract.bind(event.address);
