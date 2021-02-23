@@ -103,7 +103,7 @@ export function handleTokensClaimed(event: TokensClaimed): void {
   // Load token geyser.
   let geyser = TokenGeyser.load(event.address.toHexString())!;
   
-  // Load or create user.
+  // Load existing user.
   let user = User.load(event.params.user.toHexString())!;
 
   // Add claimed rewards to user eaned amount.
@@ -154,12 +154,21 @@ export function handleTokensLocked(event: TokensLocked): void {
   geyser.rewards = ZERO_BIG_DECIMAL;
 
   geyser.tvl = ZERO_BIG_DECIMAL;
-  geyser.apy = ZERO_BIG_DECIMAL;
-  geyser.sharesPerToken = ZERO_BIG_DECIMAL;
+  geyser.apy = ZERO_BIG_DECIMAL; // todo
+  geyser.sharesPerToken = ZERO_BIG_DECIMAL; // todo
   geyser.updated = ZERO_BIG_INT;
 
   geyser.save();
   log.debug('Saved Geyser.', []);
 }
 
-export function handleTokensUnlocked(event: TokensUnlocked): void {}
+export function handleTokensUnlocked(event: TokensUnlocked): void {
+  // Load token geyser.
+  let geyser = TokenGeyser.load(event.address.toHexString())!;
+
+  // Update stats.
+  geyser.rewards = geyser.rewards.plus(integerToDecimal(event.params.amount))
+  geyser.updated = event.block.timestamp;
+  
+  geyser.save();
+}
