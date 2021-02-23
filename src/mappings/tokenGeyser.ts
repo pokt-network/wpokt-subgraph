@@ -103,7 +103,7 @@ export function handleTokensClaimed(event: TokensClaimed): void {
   // Load token geyser.
   let geyser = TokenGeyser.load(event.address.toHexString())!;
   
-  // Load existing user.
+  // Load or create user.
   let user = User.load(event.params.user.toHexString())!;
 
   // Add claimed rewards to user eaned amount.
