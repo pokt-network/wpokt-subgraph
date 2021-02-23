@@ -1,6 +1,7 @@
 import {
     Address,
     BigInt,
+    BigDecimal
   } from '@graphprotocol/graph-ts';
 import { Token } from '../types/schema';
 import { ERC20 } from '../types/TokenGeyser/ERC20';
@@ -38,4 +39,12 @@ export function createNewToken(address: Address): Token {
     }
   
     return token;
+  }
+
+  export function integerToDecimal(
+    value: BigInt,
+    decimals: BigInt = BigInt.fromI32(18)
+  ): BigDecimal {
+    let denom = BigInt.fromI32(10).pow(decimals.toI32() as u8);
+    return value.toBigDecimal().div(denom.toBigDecimal());
   }
