@@ -1,0 +1,31 @@
+name: Mainnet CI/CD
+
+on:
+  workflow_dispatch:
+
+env:
+  MAINNET_SUBGRAPH: pokt-network/wpokt-subgraph
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+          check-latest: true
+      
+      - name: Install packages
+        run: yarn install
+      
+      - name: Generate code for subgraph
+        run: yarn codegen
+      
+      - name: Build subgraph
+        run: yarn build
+
+      - name: Deploy mainnet subgraph
+        env: 
+          GRAPH_TOKEN: ${{ secrets.GRAPH_TOKEN }}
+        run: yarn deploy $GRAPH_TOKEN $MAINNET_SUBGRAPH
