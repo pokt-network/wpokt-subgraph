@@ -40,10 +40,7 @@ jobs:
       - name: Install packages
         run: yarn install
       
-      - name: Authenticate on hosted service
+      - name: Deploy subgraph
         env: 
           GRAPH_TOKEN: ${{ secrets.GRAPH_TOKEN }}
-        run: yarn auth $GRAPH_TOKEN
-      
-      - name: Deploy subgraph
-        run: yarn deploy
+        run: yarn deploy $GRAPH_TOKEN
