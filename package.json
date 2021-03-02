@@ -5,10 +5,10 @@
   "repository": "https://github.com/pokt-network/wpokt-subgraph",
   "license": "MIT",
   "scripts": {
-    "auth": "graph auth https://api.thegraph.com/ $GRAPH_ACCESS_TOKEN",
+    "auth": "graph auth https://api.thegraph.com/",
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "deploy": "yarn codegen && yarn build && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ pokt-network/wpokt-subgraph"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ crisog/alpha-rinkeby-subgraph"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.18.0",
