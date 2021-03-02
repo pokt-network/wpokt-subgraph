@@ -5,18 +5,21 @@
 </div>
 
 # wPOKT Subgraph
+[![Rinkeby CI/CD](https://github.com/pokt-network/wpokt-subgraph/actions/workflows/testnet.yaml/badge.svg)](https://github.com/pokt-network/wpokt-subgraph/actions/workflows/testnet.yaml)
 
 A subgraph that indexes wPOKT staking contract.
 <div>
 </div>
 
 ## Overview
+
 <div>
     <a  href="https://github.com/pokt-network/wpokt-subgraph/pulse"><img src="https://img.shields.io/github/contributors/pokt-network/pocket-core.svg"/></a>
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg"/></a>
     <a href="https://github.com/pokt-network/wpokt-subgraph/pulls"><img src="https://img.shields.io/github/issues-pr/pokt-network/pocket-core.svg"/></a>
     <a href="https://github.com/pokt-network/wpokt-subgraph/issues"><img src="https://img.shields.io/github/issues-closed/pokt-network/pocket-core.svg"/></a>
 </div>
+
 
 The Pocket Network staking contracts are in charge of distributing rewards to users that stake wPOKT, this subgraph indexes all the operations made in and out by this staking contract to keep the wPOKT farming app updated.
 
