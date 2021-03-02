@@ -36,6 +36,10 @@ jobs:
         with:
           node-version: "14"
           check-latest: true
+      
+      - name: Install packages
+        run: yarn install
+      
       - name: Authenticate on hosted service
         env: 
           GRAPH_TOKEN: ${{ secrets.GRAPH_TOKEN }}
