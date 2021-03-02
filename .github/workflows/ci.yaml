@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -25,22 +25,9 @@ jobs:
       
       - name: Build subgraph
         run: yarn build
-  
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    if: ${{ github.event_name == 'push' }}
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: "14"
-          check-latest: true
-      
-      - name: Install packages
-        run: yarn install
-      
+
       - name: Deploy subgraph
+        if: ${{ github.event_name == 'push' }}
         env: 
           GRAPH_TOKEN: ${{ secrets.GRAPH_TOKEN }}
         run: yarn deploy $GRAPH_TOKEN
