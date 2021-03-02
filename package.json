@@ -7,7 +7,7 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "deploy": "graph deploy crisog/alpha-rinkeby-subgraph --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ --access-token"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ --access-token"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.18.0",

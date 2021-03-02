@@ -1,11 +1,13 @@
-name: CI/CD
+name: Rinkeby CI/CD
 
 on:
   push:
     branches: [master]
   pull_request:
     branches: [master]
-  workflow_dispatch:
+
+env:
+  TESTNET_SUBGRAPH: crisog/alpha-rinkeby-subgraph
 
 jobs:
   ci:
@@ -26,8 +28,8 @@ jobs:
       - name: Build subgraph
         run: yarn build
 
-      - name: Deploy subgraph
+      - name: Deploy testnet subgraph
         if: ${{ github.event_name == 'push' }}
         env: 
           GRAPH_TOKEN: ${{ secrets.GRAPH_TOKEN }}
-        run: yarn deploy $GRAPH_TOKEN
+        run: yarn deploy $GRAPH_TOKEN $TESTNET_SUBGRAPH
