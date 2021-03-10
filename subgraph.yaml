@@ -8,9 +8,9 @@ dataSources:
     name: TokenGeyser
     network: rinkeby
     source:
-      address: '0xdb7d0a3bfcb7b34e6be510b26c55c8b60bd66d4a'
+      address: '0x746218704841983de2ca941dd91598e68c369025'
       abi: TokenGeyser
-      startBlock: 8078761
+      startBlock: 8202327 # first lockTokens() call block
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -22,6 +22,8 @@ dataSources:
           file: ./abis/TokenGeyser.json
         - name: ERC20
           file: ./abis/ERC20.json
+        - name: BPool
+          file: ./abis/balancer/BPool.json
       eventHandlers:
         - event: Staked(indexed address,uint256,uint256,bytes)
           handler: handleStaked
@@ -33,4 +35,6 @@ dataSources:
           handler: handleTokensLocked
         - event: TokensUnlocked(uint256,uint256)
           handler: handleTokensUnlocked
+      blockHandlers:
+        - handler: handleBlock
       file: ./src/mappings/tokenGeyser.ts
