@@ -17,15 +17,20 @@ import {
   ZERO_BIG_DECIMAL,
   ONE_BIG_INT,
 } from '../util/constants';
-import { log } from '@graphprotocol/graph-ts';
+import { Address, BigInt, log, ethereum } from '@graphprotocol/graph-ts';
 import { createNewToken, integerToDecimal } from '../util/helper';
+import { updatePrices } from '../util/pricing';
+
+let trackedGeysers: string[] = [
+  '0x746218704841983de2ca941dd91598e68c369025' // Genesis Farm (wPOKT/wPOKT)
+];
 
 export function handleStaked(event: Staked): void {
   // Load the TokenGeyser instance from db.
   let geyser = TokenGeyser.load(event.address.toHexString())!;
+  let contract = TokenGeyserContract.bind(event.address);
 
   // Load staking token & reward token from db.
-  // TODO: update tokens pricing.
   let stakingToken = Token.load(geyser.stakingToken)!;
   let rewardToken = Token.load(geyser.rewardToken)!;
 
@@ -41,13 +46,18 @@ export function handleStaked(event: Staked): void {
   // Create a new stake with the specified amount
   let stakeId = user.id + '-' + event.block.timestamp.toString();
 
+  let stakedAmount = event.params.amount;
+
   let stake = new Stake(stakeId);
-  stake.amount = event.params.amount;
+  stake.amount = stakedAmount;
   stake.user = user.id;
   stake.timestamp = event.block.timestamp;
-
+  
   // Add the created stake to the user
   user.stakes = user.stakes.concat([stake.id]);
+
+  let stakingShares = contract.totalStakingShares().times(stakedAmount).div(contract.totalStaked());
+  stake.shares = integerToDecimal(stakingShares);
 
   // Update stats information
   user.operations = user.operations.plus(ONE_BIG_INT);
@@ -65,28 +75,44 @@ export function handleStaked(event: Staked): void {
 export function handleUnstaked(event: Unstaked): void {
   // Load the TokenGeyser instance.
   let geyser = TokenGeyser.load(event.address.toHexString())!;
+  let contract = TokenGeyserContract.bind(event.address);
 
   // Load existing user.
   let user = User.load(event.params.user.toHexString())!;
 
   // Load stakes from user.
   let stakes = user.stakes!;
+  let unstakedAmount = event.params.amount;
 
   let deducted: boolean = false;
   
   /**
-   * Iterate stakes from the first one, and deduct the unstaked amount.
-   * The contract always unstakes from the oldest stake position.
+   * Iterate stakes from the last one, and deduct the unstaked amount.
+   * The contract always unstakes from the most recent stake position.
    */
-  for (let _i = 0; _i < stakes.length; _i++) {
+  for (let _i = stakes.length - 1; _i >= 0; _i--) {
+
     if (deducted === true) break;
+
+    let stakingSharesToBurn = contract.totalStakingShares().times(unstakedAmount).div(contract.totalStaked());
+
     let stakeId = stakes[_i]!;
     let stake = Stake.load(stakeId)!;
-    if (stake.amount >= event.params.amount) {
-      stake.amount = stake.amount.minus(event.params.amount);
+
+    if (unstakedAmount >= stake.amount) {
+      unstakedAmount = unstakedAmount.minus(stake.amount);
+      stakes.pop();
+      user.stakes = stakes;
+    } else {
+      stake.amount = stake.amount.minus(unstakedAmount);
+      stake.shares = stake.shares.minus(integerToDecimal(stakingSharesToBurn));
       stake.save();
+    }
+
+    if (unstakedAmount == ZERO_BIG_INT) {
       deducted = true;
     }
+
   }
 
   // Update stats
@@ -143,20 +169,28 @@ export function handleTokensLocked(event: TokensLocked): void {
   // Assign default values to the TokenGeyser entity.
   geyser.stakingToken = stakingToken.id;
   geyser.rewardToken = rewardToken.id;
+
   geyser.startBonus = geyserContract.startBonus();
   geyser.bonusPeriodSec = geyserContract.bonusPeriodSec();
-  geyser.createdBlock = event.block.number;
-  geyser.createdTimestamp = event.block.timestamp;
-
+  geyser.sharesPerToken = ZERO_BIG_INT;
+  
   geyser.users = ZERO_BIG_INT;
   geyser.operations = ZERO_BIG_INT;
+  
   geyser.staked = ZERO_BIG_DECIMAL;
   geyser.rewards = ZERO_BIG_DECIMAL;
+  geyser.totalUnlockedRewards = ZERO_BIG_DECIMAL;
 
+  geyser.stakedUSD = ZERO_BIG_DECIMAL;
+  geyser.rewardsUSD = ZERO_BIG_DECIMAL;
+  geyser.totalUnlockedRewardsUSD = ZERO_BIG_DECIMAL;
+ 
   geyser.tvl = ZERO_BIG_DECIMAL;
   geyser.apy = ZERO_BIG_DECIMAL; // todo
-  geyser.sharesPerToken = ZERO_BIG_DECIMAL; // todo
   geyser.updated = ZERO_BIG_INT;
+
+  geyser.createdBlock = event.block.number;
+  geyser.createdTimestamp = event.block.timestamp;
 
   geyser.save();
   log.debug('Saved Geyser.', []);
@@ -167,8 +201,31 @@ export function handleTokensUnlocked(event: TokensUnlocked): void {
   let geyser = TokenGeyser.load(event.address.toHexString())!;
 
   // Update stats.
-  geyser.rewards = geyser.rewards.plus(integerToDecimal(event.params.amount))
+  geyser.totalUnlockedRewards = geyser.totalUnlockedRewards.plus(integerToDecimal(event.params.amount));
   geyser.updated = event.block.timestamp;
   
   geyser.save();
+}
+
+export function handleBlock(block: ethereum.Block): void {
+
+  if (block.number.mod(BigInt.fromI32(100)).notEqual(ZERO_BIG_INT)) {
+    return;
+  }
+
+  for (let i = 0; i < trackedGeysers.length; i++) {
+    let geyser = TokenGeyser.load(trackedGeysers[i])!;
+    let contract = TokenGeyserContract.bind(Address.fromString(geyser.id));
+    let stakingToken = Token.load(geyser.stakingToken)!;
+    let rewardToken = Token.load(geyser.rewardToken)!;
+    
+    updatePrices(geyser, contract, stakingToken, rewardToken, block);
+    
+    geyser.updated = block.timestamp;
+
+    // store
+    geyser.save();
+    stakingToken.save();
+    rewardToken.save();
+  }
 }
