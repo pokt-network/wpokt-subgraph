@@ -23,7 +23,6 @@ type TokenGeyser @entity {
   stakingToken: Token!
   rewardToken: Token!
 
-  startBonus: BigInt!
   bonusPeriodSec: BigInt!
   sharesPerToken: BigInt!
 
@@ -31,15 +30,15 @@ type TokenGeyser @entity {
   operations: BigInt!
 
   staked: BigDecimal!
-  rewards: BigDecimal! # current rewards
-  totalUnlockedRewards: BigDecimal! # total unlocked rewards (not current)
+  rewards: BigDecimal!
+  unlockedRewards: BigDecimal!
+  lockedRewards: BigDecimal!
 
   stakedUSD: BigDecimal!
   rewardsUSD: BigDecimal!
-  totalUnlockedRewardsUSD: BigDecimal!
 
+  apr: BigDecimal!
   tvl: BigDecimal!
-  apy: BigDecimal!
   updated: BigInt!
 
   createdTimestamp: BigInt!
@@ -58,7 +57,7 @@ type User @entity {
 type Stake @entity {
   id: ID!
 
-  amount: BigInt!
+  amount: BigDecimal!
   user: User!
   shares: BigDecimal!
 

@@ -46,7 +46,7 @@ export function handleStaked(event: Staked): void {
   // Create a new stake with the specified amount
   let stakeId = user.id + '-' + event.block.timestamp.toString();
 
-  let stakedAmount = event.params.amount;
+  let stakedAmount = integerToDecimal(event.params.amount);
 
   let stake = new Stake(stakeId);
   stake.amount = stakedAmount;
@@ -56,8 +56,10 @@ export function handleStaked(event: Staked): void {
   // Add the created stake to the user
   user.stakes = user.stakes.concat([stake.id]);
 
-  let stakingShares = contract.totalStakingShares().times(stakedAmount).div(contract.totalStaked());
-  stake.shares = integerToDecimal(stakingShares);
+  let totalStaked = integerToDecimal(contract.totalStaked());
+  let totalStakingShares = integerToDecimal(contract.totalStakingShares());
+  let stakingShares = totalStakingShares.times(stakedAmount).div(totalStaked);
+  stake.shares = stakingShares;
 
   // Update stats information
   user.operations = user.operations.plus(ONE_BIG_INT);
@@ -82,7 +84,7 @@ export function handleUnstaked(event: Unstaked): void {
 
   // Load stakes from user.
   let stakes = user.stakes!;
-  let unstakedAmount = event.params.amount;
+  let unstakedAmount = integerToDecimal(event.params.amount);
 
   let deducted: boolean = false;
   
@@ -94,7 +96,9 @@ export function handleUnstaked(event: Unstaked): void {
 
     if (deducted === true) break;
 
-    let stakingSharesToBurn = contract.totalStakingShares().times(unstakedAmount).div(contract.totalStaked());
+    let totalStaked = integerToDecimal(contract.totalStaked());
+    let totalStakingShares = integerToDecimal(contract.totalStakingShares());
+    let stakingSharesToBurn = totalStakingShares.times(unstakedAmount).div(totalStaked);
 
     let stakeId = stakes[_i]!;
     let stake = Stake.load(stakeId)!;
@@ -105,11 +109,11 @@ export function handleUnstaked(event: Unstaked): void {
       user.stakes = stakes;
     } else {
       stake.amount = stake.amount.minus(unstakedAmount);
-      stake.shares = stake.shares.minus(integerToDecimal(stakingSharesToBurn));
+      stake.shares = stake.shares.minus(stakingSharesToBurn);
       stake.save();
     }
 
-    if (unstakedAmount == ZERO_BIG_INT) {
+    if (unstakedAmount == ZERO_BIG_DECIMAL) {
       deducted = true;
     }
 
@@ -170,7 +174,6 @@ export function handleTokensLocked(event: TokensLocked): void {
   geyser.stakingToken = stakingToken.id;
   geyser.rewardToken = rewardToken.id;
 
-  geyser.startBonus = geyserContract.startBonus();
   geyser.bonusPeriodSec = geyserContract.bonusPeriodSec();
   geyser.sharesPerToken = ZERO_BIG_INT;
   
@@ -179,14 +182,16 @@ export function handleTokensLocked(event: TokensLocked): void {
   
   geyser.staked = ZERO_BIG_DECIMAL;
   geyser.rewards = ZERO_BIG_DECIMAL;
-  geyser.totalUnlockedRewards = ZERO_BIG_DECIMAL;
+  geyser.unlockedRewards = ZERO_BIG_DECIMAL;
+  geyser.lockedRewards = ZERO_BIG_DECIMAL;
 
   geyser.stakedUSD = ZERO_BIG_DECIMAL;
   geyser.rewardsUSD = ZERO_BIG_DECIMAL;
-  geyser.totalUnlockedRewardsUSD = ZERO_BIG_DECIMAL;
+  geyser.unlockedRewards = ZERO_BIG_DECIMAL;
+  geyser.lockedRewards = ZERO_BIG_DECIMAL;
  
   geyser.tvl = ZERO_BIG_DECIMAL;
-  geyser.apy = ZERO_BIG_DECIMAL; // todo
+  geyser.apr = ZERO_BIG_DECIMAL;
   geyser.updated = ZERO_BIG_INT;
 
   geyser.createdBlock = event.block.number;
@@ -201,7 +206,10 @@ export function handleTokensUnlocked(event: TokensUnlocked): void {
   let geyser = TokenGeyser.load(event.address.toHexString())!;
 
   // Update stats.
-  geyser.totalUnlockedRewards = geyser.totalUnlockedRewards.plus(integerToDecimal(event.params.amount));
+  let unlockedAmount = integerToDecimal(event.params.amount);
+  geyser.unlockedRewards = geyser.unlockedRewards.plus(unlockedAmount);
+  let lockedAmount = integerToDecimal(event.params.total);
+  geyser.lockedRewards = lockedAmount;
   geyser.updated = event.block.timestamp;
   
   geyser.save();

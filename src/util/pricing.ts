@@ -1,6 +1,7 @@
 import {
     Address,
     BigInt,
+    BigDecimal,
     ethereum,
     log
   } from '@graphprotocol/graph-ts';
@@ -60,10 +61,27 @@ export function updatePrices(
     geyser.stakedUSD = geyser.staked.times(stakingToken.price);
     geyser.rewardsUSD = geyser.rewards.times(rewardToken.price);
 
+    geyser.tvl = geyser.stakedUSD.plus(geyser.rewardsUSD);
+
+    // 1 Month = 30 days for estimations.
+    let secondsInMonth = BigDecimal.fromString('2628000');
+    let monthsInYear = BigDecimal.fromString('12');
+    let secondsSinceCreation: BigInt = block.timestamp.minus(geyser.createdTimestamp);
+    let totalUnlocked = geyser.unlockedRewards;
+
+    let monthlyUnlockRate = totalUnlocked.div(secondsSinceCreation.toBigDecimal()).times(secondsInMonth);
+    let estimatedUnlockedRewards = totalUnlocked.plus(monthlyUnlockRate);
+
     let accounting = contract.try_updateAccounting();
+    let globalStakingSharesSeconds: BigDecimal;
     if (!accounting.reverted) {
-      log.info('global share sec: {}', [accounting.value.value3.toString()]);
+      globalStakingSharesSeconds = integerToDecimal(accounting.value.value3);
     }
+
+    let estimationAmount = BigDecimal.fromString('30000');
+    let estimationOwnershipShare = estimationAmount.times(geyser.bonusPeriodSec.toBigDecimal()).div(globalStakingSharesSeconds);    
+    let calculatedAPR = estimationOwnershipShare.times(estimatedUnlockedRewards).times(monthsInYear).div(estimationAmount).times(BigDecimal.fromString('100'));
+    geyser.apr = calculatedAPR;
 
     geyser.save();
     stakingToken.save();
