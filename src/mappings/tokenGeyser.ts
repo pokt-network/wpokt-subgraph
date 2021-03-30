@@ -174,6 +174,7 @@ export function handleTokensLocked(event: TokensLocked): void {
   geyser.stakingToken = stakingToken.id;
   geyser.rewardToken = rewardToken.id;
 
+  geyser.durationSec = event.params.durationSec;
   geyser.bonusPeriodSec = geyserContract.bonusPeriodSec();
   geyser.sharesPerToken = ZERO_BIG_INT;
   

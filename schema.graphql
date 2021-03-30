@@ -24,6 +24,7 @@ type TokenGeyser @entity {
   rewardToken: Token!
 
   bonusPeriodSec: BigInt!
+  durationSec: BigInt!
   sharesPerToken: BigInt!
 
   users: BigInt!
