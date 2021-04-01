@@ -17,7 +17,7 @@ import {
   ZERO_BIG_DECIMAL,
   ONE_BIG_INT,
 } from '../util/constants';
-import { Address, BigInt, log, ethereum } from '@graphprotocol/graph-ts';
+import { Address, BigInt, BigDecimal, log, ethereum } from '@graphprotocol/graph-ts';
 import { createNewToken, integerToDecimal } from '../util/helper';
 import { updatePrices } from '../util/pricing';
 
@@ -174,6 +174,13 @@ export function handleTokensLocked(event: TokensLocked): void {
   geyser.stakingToken = stakingToken.id;
   geyser.rewardToken = rewardToken.id;
 
+  
+  let accounting = geyserContract.try_updateAccounting();
+  let globalStakingSharesSeconds: BigDecimal;
+  if (!accounting.reverted) {
+    globalStakingSharesSeconds = integerToDecimal(accounting.value.value3);
+  }
+  geyser.globalSharesSec = globalStakingSharesSeconds;
   geyser.durationSec = event.params.durationSec;
   geyser.bonusPeriodSec = geyserContract.bonusPeriodSec();
   geyser.sharesPerToken = ZERO_BIG_INT;
@@ -185,6 +192,7 @@ export function handleTokensLocked(event: TokensLocked): void {
   geyser.rewards = ZERO_BIG_DECIMAL;
   geyser.unlockedRewards = ZERO_BIG_DECIMAL;
   geyser.lockedRewards = ZERO_BIG_DECIMAL;
+  geyser.totalUnlockedRewards = ZERO_BIG_DECIMAL;
 
   geyser.stakedUSD = ZERO_BIG_DECIMAL;
   geyser.rewardsUSD = ZERO_BIG_DECIMAL;
@@ -208,7 +216,7 @@ export function handleTokensUnlocked(event: TokensUnlocked): void {
 
   // Update stats.
   let unlockedAmount = integerToDecimal(event.params.amount);
-  geyser.unlockedRewards = geyser.unlockedRewards.plus(unlockedAmount);
+  geyser.totalUnlockedRewards = geyser.totalUnlockedRewards.plus(unlockedAmount);
   let lockedAmount = integerToDecimal(event.params.total);
   geyser.lockedRewards = lockedAmount;
   geyser.updated = event.block.timestamp;
