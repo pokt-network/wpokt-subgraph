@@ -55,6 +55,7 @@ export function handleStaked(event: Staked): void {
   
   // Add the created stake to the user
   user.stakes = user.stakes.concat([stake.id]);
+  user.totalStaked = integerToDecimal(event.params.total);
 
   let totalStaked = integerToDecimal(contract.totalStaked());
   let totalStakingShares = integerToDecimal(contract.totalStakingShares());
@@ -118,6 +119,8 @@ export function handleUnstaked(event: Unstaked): void {
     }
 
   }
+  
+  user.totalStaked = integerToDecimal(event.params.total);
 
   // Update stats
   user.operations = user.operations.plus(ONE_BIG_INT);

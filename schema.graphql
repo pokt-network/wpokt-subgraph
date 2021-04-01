@@ -53,6 +53,7 @@ type User @entity {
 
   operations: BigInt!
   earned: BigDecimal!
+  totalStaked: BigDecimal!
   
   stakes: [Stake!]
 }
