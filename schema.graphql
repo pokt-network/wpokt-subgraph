@@ -26,6 +26,7 @@ type TokenGeyser @entity {
   bonusPeriodSec: BigInt!
   durationSec: BigInt!
   sharesPerToken: BigInt!
+  globalSharesSec: BigDecimal!
 
   users: BigInt!
   operations: BigInt!
@@ -34,6 +35,7 @@ type TokenGeyser @entity {
   rewards: BigDecimal!
   unlockedRewards: BigDecimal!
   lockedRewards: BigDecimal!
+  totalUnlockedRewards: BigDecimal!
 
   stakedUSD: BigDecimal!
   rewardsUSD: BigDecimal!
