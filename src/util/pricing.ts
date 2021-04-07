@@ -1,8 +1,8 @@
 import {
     Address,
     BigInt,
-    ethereum,
-    log
+    BigDecimal,
+    ethereum
   } from '@graphprotocol/graph-ts';
 import {
     TokenGeyser as TokenGeyserContract,
@@ -52,18 +52,36 @@ export function updatePrices(
 
     // Farm stats
     geyser.staked = integerToDecimal(contract.totalStaked(), stakingToken.decimals);
-    geyser.rewards = integerToDecimal(contract.totalLocked(), rewardToken.decimals).plus(
-        integerToDecimal(contract.totalUnlocked(), rewardToken.decimals)
-    );
+    geyser.lockedRewards = integerToDecimal(contract.totalLocked(), rewardToken.decimals);
+    geyser.unlockedRewards = integerToDecimal(contract.totalUnlocked(), rewardToken.decimals);
+    geyser.rewards = geyser.lockedRewards.plus(geyser.unlockedRewards);
 
     // USD amounts
     geyser.stakedUSD = geyser.staked.times(stakingToken.price);
     geyser.rewardsUSD = geyser.rewards.times(rewardToken.price);
 
+    geyser.tvl = geyser.stakedUSD.plus(geyser.rewardsUSD);
+
+    // 1 Month = 30 days for estimations.
+    let secondsInMonth = BigDecimal.fromString('2628000');
+    let monthsInYear = BigDecimal.fromString('12');
+    let secondsSinceCreation: BigInt = block.timestamp.minus(geyser.createdTimestamp);
+    let totalUnlocked = geyser.unlockedRewards;
+
+    let monthlyUnlockRate = totalUnlocked.div(secondsSinceCreation.toBigDecimal()).times(secondsInMonth);
+    let estimatedUnlockedRewards = totalUnlocked.plus(monthlyUnlockRate);
+
     let accounting = contract.try_updateAccounting();
+    let globalStakingSharesSeconds: BigDecimal;
     if (!accounting.reverted) {
-      log.info('global share sec: {}', [accounting.value.value3.toString()]);
+      globalStakingSharesSeconds = integerToDecimal(accounting.value.value3);
     }
+    geyser.globalSharesSec = globalStakingSharesSeconds;
+
+    let estimationAmount = BigDecimal.fromString('30000');
+    let estimationOwnershipShare = estimationAmount.div(globalStakingSharesSeconds);
+    let calculatedAPR = estimationOwnershipShare.times(estimatedUnlockedRewards).times(monthsInYear).div(estimationAmount).times(BigDecimal.fromString('100'));
+    geyser.apr = calculatedAPR;
 
     geyser.save();
     stakingToken.save();
