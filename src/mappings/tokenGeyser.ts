@@ -67,6 +67,8 @@ export function handleStaked(event: Staked): void {
   geyser.operations = geyser.operations.plus(ONE_BIG_INT);
   geyser.updated = event.block.timestamp;
 
+  updatePrices(geyser, contract, stakingToken, rewardToken, event.block);
+
   // Save entities in the dabase.
   user.save();
   stakingToken.save();
@@ -79,6 +81,10 @@ export function handleUnstaked(event: Unstaked): void {
   // Load the TokenGeyser instance.
   let geyser = TokenGeyser.load(event.address.toHexString())!;
   let contract = TokenGeyserContract.bind(event.address);
+  
+  // Load staking token & reward token from db.
+  let stakingToken = Token.load(geyser.stakingToken)!;
+  let rewardToken = Token.load(geyser.rewardToken)!;
 
   // Load existing user.
   let user = User.load(event.params.user.toHexString())!;
@@ -127,6 +133,8 @@ export function handleUnstaked(event: Unstaked): void {
   geyser.operations = geyser.operations.plus(ONE_BIG_INT);
 
   geyser.updated = event.block.timestamp;
+
+  updatePrices(geyser, contract, stakingToken, rewardToken, event.block);
 
   user.save();
   geyser.save();
