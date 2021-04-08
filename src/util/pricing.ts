@@ -82,7 +82,7 @@ export function updatePrices(
     geyser.globalSharesSec = globalStakingSharesSeconds;
 
     let calculatedAPR: BigDecimal;
-    if (geyser.unlockedRewards.equals(ZERO_BIG_DECIMAL)) {
+    if (globalStakingSharesSeconds.equals(ZERO_BIG_DECIMAL)) {
         calculatedAPR = ZERO_BIG_DECIMAL;
     } else {
         let estimationAmount = BigDecimal.fromString('30000');
