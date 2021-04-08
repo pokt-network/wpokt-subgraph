@@ -15,7 +15,9 @@ import { BPool } from '../types/TokenGeyser/BPool'
 import { 
     WPOKT_DAI_BPOOL, 
     WPOKT_ADDRESS, 
-    DAI_ADDRESS
+    DAI_ADDRESS,
+    ZERO_BIG_DECIMAL,
+    ONE_BIG_DECIMAL
 } from '../util/constants';
 import { 
     integerToDecimal
@@ -76,11 +78,18 @@ export function updatePrices(
     if (!accounting.reverted) {
       globalStakingSharesSeconds = integerToDecimal(accounting.value.value3);
     }
+    
     geyser.globalSharesSec = globalStakingSharesSeconds;
 
-    let estimationAmount = BigDecimal.fromString('30000');
-    let estimationOwnershipShare = estimationAmount.div(globalStakingSharesSeconds);
-    let calculatedAPR = estimationOwnershipShare.times(estimatedUnlockedRewards).times(monthsInYear).div(estimationAmount).times(BigDecimal.fromString('100'));
+    let calculatedAPR: BigDecimal;
+    if (geyser.unlockedRewards.equals(ZERO_BIG_DECIMAL)) {
+        calculatedAPR = ZERO_BIG_DECIMAL;
+    } else {
+        let estimationAmount = BigDecimal.fromString('30000');
+        let estimationOwnershipShare = estimationAmount.div(globalStakingSharesSeconds);
+        calculatedAPR = estimationOwnershipShare.times(estimatedUnlockedRewards).times(monthsInYear).div(estimationAmount).times(BigDecimal.fromString('100'));
+    }
+
     geyser.apr = calculatedAPR;
 
     geyser.save();
