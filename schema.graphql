@@ -35,7 +35,16 @@ type TokenGeyser @entity {
   rewards: BigDecimal!
   unlockedRewards: BigDecimal!
   lockedRewards: BigDecimal!
+
+  # unlockedRewards stores the state of the unlocked pool,
+  # which varies over time as people stake/unstake.
+  # This total variable stores the total unlocked despite people's claimed amounts.
   totalUnlockedRewards: BigDecimal!
+
+  # lockedRewards stores the state of the locked pool,
+  # which varies over time as people stake/unstake.
+  # This total variable stores the total locked despite amounts moved to unlocked pool.
+  totalLockedRewards: BigDecimal!
 
   stakedUSD: BigDecimal!
   rewardsUSD: BigDecimal!

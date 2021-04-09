@@ -204,6 +204,7 @@ export function handleTokensLocked(event: TokensLocked): void {
   geyser.unlockedRewards = ZERO_BIG_DECIMAL;
   geyser.lockedRewards = ZERO_BIG_DECIMAL;
   geyser.totalUnlockedRewards = ZERO_BIG_DECIMAL;
+  geyser.totalLockedRewards = integerToDecimal(event.params.amount);
 
   geyser.stakedUSD = ZERO_BIG_DECIMAL;
   geyser.rewardsUSD = ZERO_BIG_DECIMAL;
