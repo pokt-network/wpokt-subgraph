@@ -8,7 +8,7 @@ dataSources:
     name: TokenGeyser
     network: rinkeby
     source:
-      address: '0xa021bb8900e905dd4c39a00ee2e8882e95f5d242'
+      address: '0xc32eb16f016b193966cac6980f5eb25d498e8dc9'
       abi: TokenGeyser
       startBlock: 8373565 # first lockTokens() call block
     mapping:
