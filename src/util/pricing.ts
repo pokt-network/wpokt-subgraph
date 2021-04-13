@@ -16,11 +16,11 @@ import {
     WPOKT_DAI_BPOOL, 
     WPOKT_ADDRESS, 
     DAI_ADDRESS,
-    ZERO_BIG_DECIMAL,
-    ONE_BIG_DECIMAL
+    DAYS_IN_YEAR
 } from '../util/constants';
 import { 
-    integerToDecimal
+    integerToDecimal,
+    secondsToDays
 } from '../util/helper';
 
 export function getBalancerWPOKTSpotPrice(): BigInt {
@@ -64,15 +64,6 @@ export function updatePrices(
 
     geyser.tvl = geyser.stakedUSD.plus(geyser.rewardsUSD);
 
-    // 1 Month = 30 days for estimations.
-    let secondsInMonth = BigDecimal.fromString('2628000');
-    let monthsInYear = BigDecimal.fromString('12');
-    let secondsSinceCreation: BigInt = block.timestamp.minus(geyser.createdTimestamp);
-    let totalUnlocked = geyser.unlockedRewards;
-
-    let monthlyUnlockRate = totalUnlocked.div(secondsSinceCreation.toBigDecimal()).times(secondsInMonth);
-    let estimatedUnlockedRewards = totalUnlocked.plus(monthlyUnlockRate);
-
     let accounting = contract.try_updateAccounting();
     let globalStakingSharesSeconds: BigDecimal;
     if (!accounting.reverted) {
@@ -81,14 +72,10 @@ export function updatePrices(
     
     geyser.globalSharesSec = globalStakingSharesSeconds;
 
-    let calculatedAPR: BigDecimal;
-    if (globalStakingSharesSeconds.equals(ZERO_BIG_DECIMAL)) {
-        calculatedAPR = ZERO_BIG_DECIMAL;
-    } else {
-        let estimationAmount = BigDecimal.fromString('30000');
-        let estimationOwnershipShare = estimationAmount.div(globalStakingSharesSeconds);
-        calculatedAPR = estimationOwnershipShare.times(estimatedUnlockedRewards).times(monthsInYear).div(estimationAmount).times(BigDecimal.fromString('100'));
-    }
+    let secondsSinceCreation: BigInt = block.timestamp.minus(geyser.createdTimestamp);
+    let daysSinceCreation = secondsToDays(secondsSinceCreation);
+
+    let calculatedAPR = geyser.unlockedRewards.div(geyser.staked).times(DAYS_IN_YEAR.div(daysSinceCreation)).times(BigDecimal.fromString('100'));
 
     geyser.apr = calculatedAPR;
 
