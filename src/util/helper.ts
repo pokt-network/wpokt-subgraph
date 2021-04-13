@@ -5,7 +5,7 @@ import {
   } from '@graphprotocol/graph-ts';
 import { Token } from '../types/schema';
 import { ERC20 } from '../types/TokenGeyser/ERC20';
-import { ZERO_BIG_DECIMAL, ZERO_BIG_INT } from '../util/constants';
+import { ZERO_BIG_DECIMAL, ZERO_BIG_INT, ONE_MINUTE, ONE_HOUR, ONE_DAY, DAYS_IN_MONTH } from '../util/constants';
 
 export function createNewToken(address: Address): Token {
     let tokenContract = ERC20.bind(address);
@@ -48,3 +48,22 @@ export function createNewToken(address: Address): Token {
     let denom = BigInt.fromI32(10).pow(decimals.toI32() as u8);
     return value.toBigDecimal().div(denom.toBigDecimal());
   }
+
+  export function secondsToDays(
+    seconds: BigInt
+  ): BigDecimal {
+
+    let minutes = seconds.divDecimal(ONE_MINUTE);
+    let hours = minutes.div(ONE_HOUR);
+    let days = hours.div(ONE_DAY);
+    
+    return days;
+  }
+
+export function daysToMonths(
+  days: BigDecimal
+): BigDecimal {
+  let months = days.div(DAYS_IN_MONTH);
+  
+  return months;
+}
