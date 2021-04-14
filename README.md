@@ -28,9 +28,10 @@ The Pocket Network staking contracts are in charge of distributing rewards to us
 These are the contracts being tracked on testnet for the subgraph.
 
 ```
-wPOKT on Rinkeby - 0x2f363dd061cc8b3411c3c91c0cfac0fa1b62f656
-TokenGeyser on Rinkeby - 0xdb7d0a3bfcb7b34e6be510b26c55c8b60bd66d4a
-wPOKT Pool - 0x7c2cf434e98940ad08ae3f26986235628b0904e7
+wPOKT: 0x362067F3833a232786354e1366b0d3797583C7E1
+TokenGeyser: 0xC32eB16f016b193966caC6980F5EB25d498E8DC9
+Unlocked wPOKT Pool: 0x39b79EF73F25413BBA2624f818eA924b74B83EBF
+Locked wPOKT Pool: 0x5368e433d65E2De1188dC0B9a0B9a74e7DD1AC3A
 ```
 
 ### Installation
