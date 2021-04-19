@@ -47,6 +47,46 @@ Locked wPOKT Pool: 0x5368e433d65E2De1188dC0B9a0B9a74e7DD1AC3A
 
 The documentation on how to query this subgraph can be found at thegraph.com/docs/.
 
+# wPOKT (Subgraph)
+
+Subgraph code: https://github.com/pokt-network/wpokt-subgraph
+
+The subgraph is saving four entities:
+- Token
+- TokenGeyser (aka Farm)
+- User
+- Stake
+
+We are listening to several events in the TokenGeyser contract, and the purpose of this document is to explain how these are being tracked/saved.
+
+In the repository, we have a single mapping file for all the events related to the TokenGeyser. Since we are not using a Factory to deploy the Geysers, we need to specify the contract addresses in the `subgraph.yaml` using multiple data sources.
+
+**Considerations:** 
+
+1. The `handleBlock` function in the mapping uses an array of addresses called `trackedGeysers`. 
+
+    **Why?**
+    Since the event itself isn't triggered by the contract, then we need to store the       geysers it needs to periodically update. If we used a Factory to deploy the Farms, then     we could do this in a better way.
+    
+2. The `startBlock` parameter in `subgraph.yaml` should be the block when `lockTokens()` was first called.
+
+    **Why?**
+    Since we are not using a Factory to deploy the contracts, there's no way to listen to an     event when each contract is created to save `TokenGeyser` identities. So, we decided to create the `TokenGeyser` identity after locking tokens for rewards (calling `lockTokens`). [See here. ](https://github.com/pokt-network/wpokt-subgraph/blob/master/src/mappings/tokenGeyser.ts#L160)
+    
+    This is a disadvantage in a certain way, since farms **must** only have 1 unlock schedule for this subgraph to work correctly. In the future, I would suggest using a Factory to avoid these workarounds.
+    
+3. The subgraph updates the `TokenGeyser` stats (APR, TVL, etc) & `Token` prices periodically. After someone stakes, unstakes and after each block number with the following requirement: `(BlockNumber % 100 == 0)`. Ideally, this could happen more often for quicker updates.
+
+4. Since wPOKT will be launched using a Balancer Pool, its price is fetched calling the BPool contract to get the Spot price. [See here.](https://github.com/pokt-network/wpokt-subgraph/blob/master/src/util/pricing.ts#L26).
+
+    The Balancer Pool contract address, the wPOKT address and DAI address (assuming a wPOKT/DAI Pool) is set in the constants. [See here.](https://github.com/pokt-network/wpokt-subgraph/blob/master/src/util/constants.ts#L19)
+    
+5. The APR formula can be found [here.](https://github.com/pokt-network/wpokt-subgraph/blob/master/src/util/pricing.ts#L78)
+
+    `[(Unlocked Rewards / Staked) * (365.25 / DAYS_SINCE_FARM_CREATION)] * 100`
+
+
+
 ## Contributing
 
 Please read [CONTRIBUTING.md](https://github.com/pokt-network/repo-template/blob/master/CONTRIBUTING.md) for details on contributions and the process of submitting pull requests.
