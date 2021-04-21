@@ -22,7 +22,7 @@ import { createNewToken, integerToDecimal } from '../util/helper';
 import { updatePrices } from '../util/pricing';
 
 let trackedGeysers: string[] = [
-  '0xc32eb16f016b193966cac6980f5eb25d498e8dc9' // Genesis Farm (wPOKT/wPOKT)
+  '0x32d5802c24892b53cfb00bfbba9dcfb74031594c' // Genesis Farm (wPOKT/wPOKT)
 ];
 
 export function handleStaked(event: Staked): void {
