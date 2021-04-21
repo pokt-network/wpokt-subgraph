@@ -77,7 +77,7 @@ export function updatePrices(
     let daysSinceCreation = secondsToDays(secondsSinceCreation);
 
     let calculatedAPR = ZERO_BIG_DECIMAL;
-    if (geyser.staked !== ZERO_BIG_DECIMAL) {
+    if (geyser.staked.notEqual(ZERO_BIG_DECIMAL)) {
         calculatedAPR = geyser.unlockedRewards.div(geyser.staked).times(DAYS_IN_YEAR.div(daysSinceCreation)).times(BigDecimal.fromString('100'));
     }
 
