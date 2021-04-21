@@ -9,9 +9,9 @@ export let ONE_BIG_INT = BigInt.fromI32(1);
 export let ZERO_BIG_INT = BigInt.fromI32(0);
 
 // Time
-export let ONE_MINUTE = BigDecimal.fromString('60'); 
-export let ONE_HOUR = BigDecimal.fromString('60');
-export let ONE_DAY = BigDecimal.fromString('24');
+export let ONE_MINUTE_IN_SECONDS = BigDecimal.fromString('60'); 
+export let ONE_HOUR_IN_MINUTES = BigDecimal.fromString('60');
+export let ONE_DAY_IN_HOURS = BigDecimal.fromString('24');
 export let MONTHS_IN_YEAR = BigDecimal.fromString('12');
 export let DAYS_IN_YEAR = BigDecimal.fromString('365.25');
 export let DAYS_IN_MONTH = BigDecimal.fromString('30.25');
