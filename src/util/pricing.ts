@@ -16,7 +16,8 @@ import {
     WPOKT_DAI_BPOOL, 
     WPOKT_ADDRESS, 
     DAI_ADDRESS,
-    DAYS_IN_YEAR
+    DAYS_IN_YEAR,
+    ZERO_BIG_DECIMAL
 } from '../util/constants';
 import { 
     integerToDecimal,
@@ -75,7 +76,10 @@ export function updatePrices(
     let secondsSinceCreation: BigInt = block.timestamp.minus(geyser.createdTimestamp);
     let daysSinceCreation = secondsToDays(secondsSinceCreation);
 
-    let calculatedAPR = geyser.unlockedRewards.div(geyser.staked).times(DAYS_IN_YEAR.div(daysSinceCreation)).times(BigDecimal.fromString('100'));
+    let calculatedAPR = ZERO_BIG_DECIMAL;
+    if (geyser.staked !== ZERO_BIG_DECIMAL) {
+        calculatedAPR = geyser.unlockedRewards.div(geyser.staked).times(DAYS_IN_YEAR.div(daysSinceCreation)).times(BigDecimal.fromString('100'));
+    }
 
     geyser.apr = calculatedAPR;
 
